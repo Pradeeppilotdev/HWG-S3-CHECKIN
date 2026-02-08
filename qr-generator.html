@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Participant QR Code Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #202124;
+      margin-bottom: 10px;
+      font-size: 2rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #5f6368;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #202124;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e8eaed;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4285f4;
+      box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+      color: white;
+      border: none;
+      border-radius: 15px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    #qrcode {
+      margin-top: 30px;
+      text-align: center;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      min-height: 100px;
+    }
+
+    #qrcode canvas {
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .download-btn {
+      margin-top: 15px;
+      background: linear-gradient(135deg, #34a853 0%, #0f9d58 100%);
+    }
+
+    .participant-info {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .participant-info h3 {
+      color: #202124;
+      margin-bottom: 5px;
+    }
+
+    .participant-info p {
+      color: #5f6368;
+      font-size: 0.9rem;
+    }
+
+    .instructions {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f0fe;
+      border-left: 4px solid #4285f4;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #1967d2;
+    }
+
+    .bulk-section {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 2px solid #e8eaed;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e8eaed;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: monospace;
+      min-height: 150px;
+      transition: all 0.3s ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #4285f4;
+      box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 QR Code Generator</h1>
+    <p class="subtitle">For Hackathon Check-In System</p>
+
+    <div class="form-group">
+      <label for="participantId">Participant ID:</label>
+      <input type="text" id="participantId" placeholder="e.g., 101">
+    </div>
+
+    <div class="form-group">
+      <label for="participantName">Participant Name:</label>
+      <input type="text" id="participantName" placeholder="e.g., John Doe">
+    </div>
+
+    <button onclick="generateQRCode()">📱 Generate QR Code</button>
+
+    <div id="qrcode"></div>
+
+    <div class="instructions">
+      <strong>📝 Instructions:</strong><br>
+      1. Enter participant ID and name<br>
+      2. Click "Generate QR Code"<br>
+      3. Download or print the QR code<br>
+      4. Scan at check-in stations during hackathon
+    </div>
+
+    <div class="bulk-section">
+      <h3 style="color: #202124; margin-bottom: 15px;">📋 Bulk Generate</h3>
+      <div class="form-group">
+        <label for="bulkData">Enter participants (one per line: ID,Name):</label>
+        <textarea id="bulkData" placeholder="101,John Doe&#10;102,Jane Smith&#10;103,Bob Johnson"></textarea>
+      </div>
+      <button onclick="generateBulkQRCodes()">📦 Generate All QR Codes</button>
+      <div id="bulkQRCodes"></div>
+    </div>
+  </div>
+
+  <script>
+    function generateQRCode() {
+      const id = document.getElementById('participantId').value.trim();
+      const name = document.getElementById('participantName').value.trim();
+      
+      if (!id || !name) {
+        alert('Please fill in both Participant ID and Name!');
+        return;
+      }
+
+      const data = `${id}|${name}`;
+      const qrcodeDiv = document.getElementById('qrcode');
+      qrcodeDiv.innerHTML = '';
+
+      QRCode.toCanvas(data, { 
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      }, function (error, canvas) {
+        if (error) {
+          console.error(error);
+          alert('Error generating QR code!');
+          return;
+        }
+        
+        canvas.style.display = 'block';
+        canvas.style.margin = '0 auto';
+        qrcodeDiv.appendChild(canvas);
+
+        // Add participant info
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'participant-info';
+        infoDiv.innerHTML = `
+          <h3>${name}</h3>
+          <p>ID: ${id}</p>
+        `;
+        qrcodeDiv.appendChild(infoDiv);
+
+        // Add download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-btn';
+        downloadBtn.textContent = '💾 Download QR Code';
+        downloadBtn.onclick = function() {
+          const link = document.createElement('a');
+          link.download = `qr-${id}-${name.replace(/\s+/g, '-')}.png`;
+          link.href = canvas.toDataURL();
+          link.click();
+        };
+        qrcodeDiv.appendChild(downloadBtn);
+      });
+    }
+
+    function generateBulkQRCodes() {
+      const bulkData = document.getElementById('bulkData').value.trim();
+      
+      if (!bulkData) {
+        alert('Please enter participant data!');
+        return;
+      }
+
+      const lines = bulkData.split('\n').filter(line => line.trim());
+      const bulkDiv = document.getElementById('bulkQRCodes');
+      bulkDiv.innerHTML = '<h3 style="margin-top: 20px; color: #202124;">Generated QR Codes:</h3>';
+
+      lines.forEach((line, index) => {
+        const [id, name] = line.split(',').map(s => s.trim());
+        
+        if (!id || !name) {
+          return;
+        }
+
+        const data = `${id}|${name}`;
+        const container = document.createElement('div');
+        container.style.marginTop = '20px';
+        container.style.padding = '20px';
+        container.style.background = '#f8f9fa';
+        container.style.borderRadius = '15px';
+        container.style.pageBreakAfter = 'always';
+
+        const title = document.createElement('h4');
+        title.textContent = `${name} (ID: ${id})`;
+        title.style.color = '#202124';
+        title.style.marginBottom = '10px';
+        title.style.textAlign = 'center';
+        container.appendChild(title);
+
+        const canvasContainer = document.createElement('div');
+        canvasContainer.style.textAlign = 'center';
+        container.appendChild(canvasContainer);
+
+        QRCode.toCanvas(data, { 
+          width: 250,
+          margin: 2
+        }, function (error, canvas) {
+          if (!error) {
+            canvas.style.borderRadius = '10px';
+            canvasContainer.appendChild(canvas);
+          }
+        });
+
+        bulkDiv.appendChild(container);
+      });
+
+      // Add print button
+      const printBtn = document.createElement('button');
+      printBtn.textContent = '🖨️ Print All QR Codes';
+      printBtn.style.marginTop = '20px';
+      printBtn.onclick = function() {
+        window.print();
+      };
+      bulkDiv.appendChild(printBtn);
+    }
+
+    // Allow Enter key to generate QR code
+    document.getElementById('participantName').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        generateQRCode();
+      }
+    });
+  </script>
+</body>
+</html>
