@@ -518,6 +518,113 @@ body::after {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-light); }
 
+/* ── Login Page ─────────────────────────────────── */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+}
+
+.login-card::before,
+.login-card::after {
+  content: '+';
+  position: absolute;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--ink-faint);
+  opacity: 0.5;
+}
+.login-card::before { top: 6px; left: 10px; }
+.login-card::after  { bottom: 6px; right: 10px; }
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-header h1 {
+  font-family: 'Caveat', cursive;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.login-header p {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1rem;
+  color: var(--ink-faint);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form .input-group { margin-bottom: 16px; }
+
+.login-error {
+  padding: 10px 14px;
+  border: 1.5px solid var(--error);
+  border-radius: var(--radius);
+  background: #f9eded;
+  color: var(--error);
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  font-family: 'Patrick Hand', cursive;
+  text-align: center;
+}
+
+.login-doodle {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+/* ── Header row (sub + sign-out) ───────────────── */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.sign-out-btn {
+  background: none;
+  border: 1.5px solid var(--ink-faint);
+  border-radius: var(--radius);
+  padding: 4px 12px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 0.9rem;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sign-out-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--shadow);
+}
+
 /* ── Responsive ────────────────────────────────── */
 @media (max-width: 600px) {
   body::after { left: 40px; }
@@ -527,4 +634,6 @@ body::after {
   .stats-grid { grid-template-columns: 1fr; }
   .dashboard-header { flex-direction: column; align-items: flex-start; }
   .tab-button { font-size: 0.95rem; padding: 10px 6px; }
+  .login-card { padding: 28px 20px; }
+  .login-header h1 { font-size: 2rem; }
 }

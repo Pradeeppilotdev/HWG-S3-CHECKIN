@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { db } from './firebase';
+import React, { useState, useEffect } from 'react';
+import { db, auth } from './firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import Login from './components/Login';
 import QRScanner from './components/QRScanner';
 import ManualEntry from './components/ManualEntry';
 import AdminDashboard from './components/AdminDashboard';
@@ -41,8 +43,38 @@ const HeaderDoodle = () => (
 );
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('scan');
   const [statusMessage, setStatusMessage] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="app-container">
+        <div className="spinner" style={{ marginTop: '40vh' }}></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   const checkInTypes = [
     { value: 'first-checkin', label: 'First Check-in (Feb 13)' },
@@ -92,7 +124,12 @@ function App() {
       <div className="header">
         <HeaderDoodle />
         <h1>Hackathon <span className="hl">Check-In</span></h1>
-        <p className="header-sub">Feb 13 – 15, 2026</p>
+        <div className="header-row">
+          <p className="header-sub">Feb 13 – 15, 2026</p>
+          <button className="sign-out-btn" onClick={handleSignOut} title="Sign out">
+            {user.email?.split('@')[0]} &middot; sign out
+          </button>
+        </div>
       </div>
 
       <div className="main-card">
