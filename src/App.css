@@ -337,6 +337,117 @@ body::after {
   font-size: 1rem;
 }
 
+/* ── Scanned participant info ──────────────────── */
+.scanned-info {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper-dark);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.scanned-info strong {
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.scanned-team {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 0.95rem;
+  color: var(--ink-light);
+}
+
+.scanned-id {
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  font-family: 'Inter', sans-serif;
+}
+
+.lead-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-family: 'Patrick Hand', cursive;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink);
+}
+
+/* ── Search dropdown ───────────────────────────── */
+.input-group { position: relative; }
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.search-result-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid var(--paper-line);
+  transition: background 0.1s;
+}
+
+.search-result-item:hover {
+  background: var(--paper-dark);
+}
+
+.search-result-item:last-child { border-bottom: none; }
+
+.search-result-name {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.search-result-meta {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+/* ── Selected participant card ─────────────────── */
+.selected-participant {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper-dark);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-participant strong {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+}
+
+.selected-participant span {
+  font-size: 0.85rem;
+  color: var(--ink-light);
+}
+
 /* ── Manual Entry ──────────────────────────────── */
 .manual-entry { display: flex; flex-direction: column; }
 

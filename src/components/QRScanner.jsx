@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import { findParticipantById } from '../data/participants';
 
 function QRScanner({ onCheckIn, checkInTypes }) {
   const [scanner, setScanner] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [selectedCheckInType, setSelectedCheckInType] = useState('first-checkin');
   const [lastScanned, setLastScanned] = useState(null);
+  const [scannedParticipant, setScannedParticipant] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -27,7 +29,7 @@ function QRScanner({ onCheckIn, checkInTypes }) {
           if (decodedText !== lastScanned) {
             setLastScanned(decodedText);
             handleQRCodeScanned(decodedText);
-            setTimeout(() => setLastScanned(null), 2000);
+            setTimeout(() => setLastScanned(null), 3000);
           }
         },
         () => {}
@@ -52,17 +54,17 @@ function QRScanner({ onCheckIn, checkInTypes }) {
   };
 
   const handleQRCodeScanned = (qrData) => {
-    try {
-      const [participantId, participantName] = qrData.split('|');
-      if (!participantId || !participantName) {
-        alert('Invalid QR code format!');
-        return;
-      }
-      onCheckIn(participantId, participantName, selectedCheckInType);
-    } catch (error) {
-      console.error('Error processing QR code:', error);
-      alert('Error processing QR code!');
+    const id = qrData.trim();
+    const participant = findParticipantById(id);
+
+    if (!participant) {
+      setScannedParticipant(null);
+      alert(`Unknown ID: ${id}\nNot found in participant list.`);
+      return;
     }
+
+    setScannedParticipant(participant);
+    onCheckIn(participant.id, participant.name, selectedCheckInType);
   };
 
   return (
@@ -93,9 +95,17 @@ function QRScanner({ onCheckIn, checkInTypes }) {
         )}
       </div>
 
+      {scannedParticipant && (
+        <div className="scanned-info">
+          <strong>{scannedParticipant.name}</strong>
+          <span className="scanned-team">{scannedParticipant.team}</span>
+          <span className="scanned-id">{scannedParticipant.id}</span>
+          {scannedParticipant.isLead && <span className="lead-badge">Team Lead</span>}
+        </div>
+      )}
+
       <div className="scanner-hint">
-        <strong>QR format:</strong> participantId|participantName<br />
-        Example: 101|John Doe
+        Point camera at participant QR badge
       </div>
     </div>
   );

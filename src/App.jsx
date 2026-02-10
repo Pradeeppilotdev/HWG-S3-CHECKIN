@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from './firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Login from './components/Login';
 import QRScanner from './components/QRScanner';
 import ManualEntry from './components/ManualEntry';
 import AdminDashboard from './components/AdminDashboard';
+import { findParticipantById } from './data/participants';
 import './App.css';
 
 /* Inline SVG doodle for the header */
@@ -92,9 +93,31 @@ function App() {
 
   const handleCheckIn = async (participantId, participantName, checkInType) => {
     try {
+      // ── Duplicate check ──────────────────────────────
+      const dupQuery = query(
+        collection(db, 'checkins'),
+        where('participantId', '==', participantId),
+        where('checkInType', '==', checkInType)
+      );
+      const dupSnap = await getDocs(dupQuery);
+
+      if (!dupSnap.empty) {
+        const label = checkInTypes.find(t => t.value === checkInType)?.label || checkInType;
+        setStatusMessage({
+          type: 'error',
+          message: `⚠ ${participantName} already checked in for ${label}!`
+        });
+        setTimeout(() => setStatusMessage(null), 4000);
+        return; // stop — no duplicate write
+      }
+
+      // ── Look up team from static data ────────────────
+      const participant = findParticipantById(participantId);
+
       const checkInData = {
         participantId,
         participantName,
+        team: participant?.team || 'Unknown',
         checkInType,
         timestamp: Timestamp.now(),
         date: new Date().toLocaleDateString(),
@@ -106,7 +129,7 @@ function App() {
       const label = checkInTypes.find(t => t.value === checkInType)?.label || checkInType;
       setStatusMessage({
         type: 'success',
-        message: `${participantName} checked in — ${label}`
+        message: `✓ ${participantName} checked in — ${label}`
       });
       setTimeout(() => setStatusMessage(null), 3000);
     } catch (error) {

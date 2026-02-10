@@ -1,44 +1,84 @@
 import React, { useState } from 'react';
+import { findParticipantsByName, findParticipantById } from '../data/participants';
 
 function ManualEntry({ onCheckIn, checkInTypes }) {
-  const [participantId, setParticipantId] = useState('');
-  const [participantName, setParticipantName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [selectedCheckInType, setSelectedCheckInType] = useState('first-checkin');
+
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    if (value.length >= 2) {
+      const results = findParticipantsByName(value).slice(0, 10);
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+  const selectParticipant = (participant) => {
+    setSelectedParticipant(participant);
+    setSearchQuery(participant.name);
+    setSearchResults([]);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!participantId || !participantName) {
-      alert('Please fill in all fields!');
+    if (!selectedParticipant) {
+      // Try looking up by ID if user typed an ID directly
+      const byId = findParticipantById(searchQuery.trim().toUpperCase());
+      if (byId) {
+        onCheckIn(byId.id, byId.name, selectedCheckInType);
+        setSearchQuery('');
+        setSelectedParticipant(null);
+        return;
+      }
+      alert('Please search and select a participant first.');
       return;
     }
-    onCheckIn(participantId, participantName, selectedCheckInType);
-    setParticipantId('');
-    setParticipantName('');
+    onCheckIn(selectedParticipant.id, selectedParticipant.name, selectedCheckInType);
+    setSearchQuery('');
+    setSelectedParticipant(null);
   };
 
   return (
     <form onSubmit={handleSubmit} className="manual-entry">
       <div className="input-group">
-        <label>Participant ID</label>
+        <label>Search participant</label>
         <input
           type="text"
-          value={participantId}
-          onChange={(e) => setParticipantId(e.target.value)}
-          placeholder="e.g. 101"
-          required
+          value={searchQuery}
+          onChange={(e) => {
+            handleSearch(e.target.value);
+            if (selectedParticipant) setSelectedParticipant(null);
+          }}
+          placeholder="Name, team, or ID (e.g. HWGDG-001)"
+          autoComplete="off"
         />
+        {searchResults.length > 0 && (
+          <div className="search-dropdown">
+            {searchResults.map(p => (
+              <div
+                key={p.id}
+                className="search-result-item"
+                onClick={() => selectParticipant(p)}
+              >
+                <span className="search-result-name">{p.name}</span>
+                <span className="search-result-meta">{p.team} &middot; {p.id}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="input-group">
-        <label>Name</label>
-        <input
-          type="text"
-          value={participantName}
-          onChange={(e) => setParticipantName(e.target.value)}
-          placeholder="e.g. John Doe"
-          required
-        />
-      </div>
+      {selectedParticipant && (
+        <div className="selected-participant">
+          <strong>{selectedParticipant.name}</strong>
+          <span>{selectedParticipant.team} &middot; {selectedParticipant.id}</span>
+          {selectedParticipant.isLead && <span className="lead-badge">Lead</span>}
+        </div>
+      )}
 
       <div className="input-group">
         <label>Check-in type</label>

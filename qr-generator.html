@@ -3,328 +3,425 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Participant QR Code Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <title>HWGDG S3 — QR Badge Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --ink: #1a1a2e;
+      --ink-light: #3a3a5c;
+      --ink-faint: #6e6e8a;
+      --paper: #faf9f6;
+      --paper-dark: #f0efe9;
+      --paper-line: #e2e0d8;
     }
-
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      font-family: 'Inter', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
     }
 
-    .container {
-      background: white;
-      border-radius: 30px;
-      padding: 40px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      width: 100%;
+    /* ── Controls Bar ────────── */
+    .controls {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--paper);
+      border-bottom: 2px solid var(--ink);
+      padding: 16px 24px;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    }
+    .controls h1 {
+      font-family: 'Caveat', cursive; font-size: 1.6rem;
+      margin-right: auto;
+    }
+    .controls input, .controls select {
+      font-family: 'Inter', sans-serif;
+      padding: 8px 12px; font-size: 0.9rem;
+      border: 2px solid var(--ink); border-radius: 4px;
+      background: var(--paper); color: var(--ink);
+    }
+    .controls input { width: 220px; }
+    .controls button {
+      font-family: 'Patrick Hand', cursive; font-size: 1rem;
+      padding: 8px 18px;
+      border: 2px solid var(--ink); border-radius: 4px;
+      cursor: pointer; transition: all .15s;
+    }
+    .btn-generate {
+      background: var(--ink); color: var(--paper);
+      box-shadow: 3px 3px 0 var(--ink-light);
+    }
+    .btn-generate:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--ink-light); }
+    .btn-print {
+      background: var(--paper); color: var(--ink);
+    }
+    .btn-print:hover { background: var(--paper-dark); }
+    .stat {
+      font-size: 0.85rem; color: var(--ink-faint);
+      font-family: 'Patrick Hand', cursive;
     }
 
-    h1 {
-      color: #202124;
-      margin-bottom: 10px;
-      font-size: 2rem;
-      text-align: center;
+    /* ── QR Grid ─────────────── */
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 24px;
     }
-
-    .subtitle {
-      color: #5f6368;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      color: #202124;
-      margin-bottom: 8px;
-    }
-
-    input {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #e8eaed;
-      border-radius: 12px;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #4285f4;
-      box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
-    }
-
-    button {
-      width: 100%;
+    .qr-card {
+      border: 2px solid var(--ink);
+      border-radius: 4px;
       padding: 16px;
-      background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
-      color: white;
-      border: none;
-      border-radius: 15px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.5);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    #qrcode {
-      margin-top: 30px;
       text-align: center;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 15px;
-      min-height: 100px;
+      background: var(--paper);
+      box-shadow: 3px 3px 0 var(--ink);
+      break-inside: avoid;
+    }
+    .qr-card .qr-img { display: flex; justify-content: center; margin: 0 auto 10px; }
+    .qr-card .qr-img img { display: block; }
+    .qr-card .qr-img canvas { display: block; }
+    .qr-name {
+      font-family: 'Caveat', cursive; font-weight: 700;
+      font-size: 1.15rem; line-height: 1.2;
+    }
+    .qr-team {
+      font-family: 'Patrick Hand', cursive;
+      font-size: 0.9rem; color: var(--ink-light);
+    }
+    .qr-id {
+      font-size: 0.75rem; color: var(--ink-faint);
+      margin-top: 2px; letter-spacing: 0.5px;
+    }
+    .qr-lead {
+      display: inline-block; margin-top: 4px;
+      padding: 1px 6px; border: 1.5px solid var(--ink);
+      border-radius: 3px; font-size: 0.65rem;
+      font-family: 'Patrick Hand', cursive;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
 
-    #qrcode canvas {
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .download-btn {
-      margin-top: 15px;
-      background: linear-gradient(135deg, #34a853 0%, #0f9d58 100%);
-    }
-
-    .participant-info {
-      margin-top: 15px;
-      padding: 15px;
-      background: white;
-      border-radius: 10px;
-      text-align: center;
-    }
-
-    .participant-info h3 {
-      color: #202124;
-      margin-bottom: 5px;
-    }
-
-    .participant-info p {
-      color: #5f6368;
-      font-size: 0.9rem;
-    }
-
-    .instructions {
-      margin-top: 20px;
-      padding: 15px;
-      background: #e8f0fe;
-      border-left: 4px solid #4285f4;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      color: #1967d2;
-    }
-
-    .bulk-section {
-      margin-top: 30px;
-      padding-top: 30px;
-      border-top: 2px solid #e8eaed;
-    }
-
-    textarea {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #e8eaed;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      font-family: monospace;
-      min-height: 150px;
-      transition: all 0.3s ease;
-    }
-
-    textarea:focus {
-      outline: none;
-      border-color: #4285f4;
-      box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+    /* ── Print ────────────────── */
+    @media print {
+      .controls { display: none; }
+      body { background: white; }
+      .qr-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px; padding: 12px;
+      }
+      .qr-card { box-shadow: none; border-width: 1px; padding: 10px; }
+      .qr-card canvas { width: 120px !important; height: 120px !important; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎉 QR Code Generator</h1>
-    <p class="subtitle">For Hackathon Check-In System</p>
 
-    <div class="form-group">
-      <label for="participantId">Participant ID:</label>
-      <input type="text" id="participantId" placeholder="e.g., 101">
-    </div>
+<div class="controls">
+  <h1>HWGDG S3 Badges</h1>
+  <input id="search" type="text" placeholder="Search name, team, or ID…" oninput="render()">
+  <select id="teamFilter" onchange="render()">
+    <option value="">All Teams</option>
+  </select>
+  <button class="btn-generate" onclick="render()">Generate QR</button>
+  <button class="btn-print" onclick="window.print()">Print</button>
+  <span class="stat" id="stat"></span>
+</div>
 
-    <div class="form-group">
-      <label for="participantName">Participant Name:</label>
-      <input type="text" id="participantName" placeholder="e.g., John Doe">
-    </div>
+<div class="qr-grid" id="grid"></div>
 
-    <button onclick="generateQRCode()">📱 Generate QR Code</button>
+<script>
+/* ── All 222 participants (from registration spreadsheet) ── */
+const P=[
+["HWGDG-001","Vishnudharshan S","Build4bucks",1],
+["HWGDG-002","Sriram R P","Build4bucks",0],
+["HWGDG-003","Amal Raajan S","Build4bucks",0],
+["HWGDG-004","Lokesh Kumar M S","Build4bucks",0],
+["HWGDG-005","Gokulanathan M","Byte & Bite",1],
+["HWGDG-006","Aadhithya Balu S","Byte & Bite",0],
+["HWGDG-007","Ahamed Atheep K","Byte & Bite",0],
+["HWGDG-008","Allimuthu S","Byte & Bite",0],
+["HWGDG-009","Varshitha S B","Code Crafters",1],
+["HWGDG-010","Naga Jothi A","Code Crafters",0],
+["HWGDG-011","Maruthupriyanka M","Code Crafters",0],
+["HWGDG-012","Farhan Tawfeeq","Shypyard",1],
+["HWGDG-013","Lakshan Adhithyaa S","Shypyard",0],
+["HWGDG-014","Karthick R","Shypyard",0],
+["HWGDG-015","Siddharth Srinivasan","LOCAL_HOST",1],
+["HWGDG-016","Yogesh S","LOCAL_HOST",0],
+["HWGDG-017","Sujitvinu RR","LOCAL_HOST",0],
+["HWGDG-018","Sibi Muthuvel","LOCAL_HOST",0],
+["HWGDG-019","Saaivishrudh","LOCAL_HOST",0],
+["HWGDG-020","Tamiliniyan C","The DUO",1],
+["HWGDG-021","Iniyasri R K","The DUO",0],
+["HWGDG-022","Vishnnu R","The DUO",0],
+["HWGDG-023","Vikas V","Elite Hackers",1],
+["HWGDG-024","Sabinaya R S","Elite Hackers",0],
+["HWGDG-025","Mukesh A","Elite Hackers",0],
+["HWGDG-026","Gowsalya A","Elite Hackers",0],
+["HWGDG-027","Preethi S Kumar","AI Drifters",1],
+["HWGDG-028","Hemanth G","AI Drifters",0],
+["HWGDG-029","Sai Vennela Vallbadas","AI Drifters",0],
+["HWGDG-030","Harshith G","AI Drifters",0],
+["HWGDG-031","Sri Swasthi S","SPARKS",1],
+["HWGDG-032","Brahmos S","SPARKS",0],
+["HWGDG-033","Louvin Raj V","SPARKS",0],
+["HWGDG-034","Rajkumar N","The Mavericks",1],
+["HWGDG-035","Akash Kashyap","The Mavericks",0],
+["HWGDG-036","Harish S","The Mavericks",0],
+["HWGDG-037","Haritha Shree S","Ethical Crew",1],
+["HWGDG-038","Sharan U","Ethical Crew",0],
+["HWGDG-039","Aksaya R","Ethical Crew",0],
+["HWGDG-040","Hariharan L","Ethical Crew",0],
+["HWGDG-041","Lathika T","Ethical Crew",0],
+["HWGDG-042","Anirudh S","True Vision",1],
+["HWGDG-043","Akshaya N","True Vision",0],
+["HWGDG-044","Janane Arokya J","True Vision",0],
+["HWGDG-045","Yuvaraj M","True Vision",0],
+["HWGDG-046","Jayan Moogilan G","True Vision",0],
+["HWGDG-047","Jyoshna S","AI Pulse",1],
+["HWGDG-048","Keerthana S","AI Pulse",0],
+["HWGDG-049","Nandhini G","AI Pulse",0],
+["HWGDG-050","Vaanathi P","PHOENIX ZETRA",1],
+["HWGDG-051","Sham K","PHOENIX ZETRA",0],
+["HWGDG-052","Sowmiya T","PHOENIX ZETRA",0],
+["HWGDG-053","Ummay Arshiya M","PHOENIX ZETRA",0],
+["HWGDG-054","Aswinkumaar SR","RUNTIME REBELS",1],
+["HWGDG-055","Pavithra R","RUNTIME REBELS",0],
+["HWGDG-056","Ruba Sri SG","RUNTIME REBELS",0],
+["HWGDG-057","Parkavi C","RUNTIME REBELS",0],
+["HWGDG-058","Aathil Ahamed A","WHITE HAT",1],
+["HWGDG-059","Hemachandran A","WHITE HAT",0],
+["HWGDG-060","Nivetha R","WHITE HAT",0],
+["HWGDG-061","Deepa R","WHITE HAT",0],
+["HWGDG-062","Rubavarshini P","WHITE HAT",0],
+["HWGDG-063","Sangeeth M","Unknown Explorers",1],
+["HWGDG-064","Akshay A","Unknown Explorers",0],
+["HWGDG-065","Gokulasree V","Unknown Explorers",0],
+["HWGDG-066","Sujith A","TechTonic",1],
+["HWGDG-067","Subashini S","TechTonic",0],
+["HWGDG-068","Gokul A","TechTonic",0],
+["HWGDG-069","Sahana K S","404 Thinkers",1],
+["HWGDG-070","Manoj S","404 Thinkers",0],
+["HWGDG-071","Harshitha P","404 Thinkers",0],
+["HWGDG-072","Nitin Keerthi","404 Thinkers",0],
+["HWGDG-073","Sahil Gaikwad","Team Visionary",1],
+["HWGDG-074","Vishal M","Team Visionary",0],
+["HWGDG-075","Sumanth Karthic T A","Team Visionary",0],
+["HWGDG-076","Shruthika R","Team Visionary",0],
+["HWGDG-077","Aditya","Team Visionary",0],
+["HWGDG-078","Naveen Kumar R","NOVA",1],
+["HWGDG-079","Ranjith Kumar J","NOVA",0],
+["HWGDG-080","Pranith Kumar P","NOVA",0],
+["HWGDG-081","Pranesh S","NOVA",0],
+["HWGDG-082","Balamurugan T","Straw Hats",1],
+["HWGDG-083","Immanuel Franklin S","Straw Hats",0],
+["HWGDG-084","Akailan I","Straw Hats",0],
+["HWGDG-085","Krishna Kumar K","Straw Hats",0],
+["HWGDG-086","Kiruthikkailash","Straw Hats",0],
+["HWGDG-087","Ramya V","Think Tankers",1],
+["HWGDG-088","Kaviya A","Think Tankers",0],
+["HWGDG-089","Dhatchayani R","Think Tankers",0],
+["HWGDG-090","Manoranjith D","Terminal Twins",1],
+["HWGDG-091","Balamurugan R","Ilamai",1],
+["HWGDG-092","Praveen K Y","Ilamai",0],
+["HWGDG-093","Sujay Chidambaram C S","Ilamai",0],
+["HWGDG-094","Baranidharan D","Ilamai",0],
+["HWGDG-095","Sathyarubini V","InnvoteX",1],
+["HWGDG-096","Srimathi V","InnvoteX",0],
+["HWGDG-097","Subhiksha S G","InnvoteX",0],
+["HWGDG-098","Kavipriya M","InnvoteX",0],
+["HWGDG-099","Abhilash Pattnaik","Udyog Setu",1],
+["HWGDG-100","Abhinav Rai","Udyog Setu",0],
+["HWGDG-101","Ashutosh Shukla","Udyog Setu",0],
+["HWGDG-102","Madhav Menon","Udyog Setu",0],
+["HWGDG-103","Madhava Lingaa GT","MLSIN28",1],
+["HWGDG-104","Nivetha Angusamy","MLSIN28",0],
+["HWGDG-105","Chaaru Dharshina A","MLSIN28",0],
+["HWGDG-106","Sanjay Kumar U","Tech Devs",1],
+["HWGDG-107","SasiKumar S","Tech Devs",0],
+["HWGDG-108","Sachin R","Tech Devs",0],
+["HWGDG-109","Prakash B","Tech Devs",0],
+["HWGDG-110","Shakhib Akthar S","Direwolves",1],
+["HWGDG-111","Shahid Afridi T","Direwolves",0],
+["HWGDG-112","Fawaz F","Direwolves",0],
+["HWGDG-113","Thillak K","Direwolves",0],
+["HWGDG-114","Vaishnavi Sakthi J","Nebula",1],
+["HWGDG-115","Sujitha K","Nebula",0],
+["HWGDG-116","Yasaswini J","Nebula",0],
+["HWGDG-117","Sneha R","Nebula",0],
+["HWGDG-118","Maha Lakshmi R","Nebula",0],
+["HWGDG-119","Pushparani B","SPR Techies",1],
+["HWGDG-120","Shamini V","SPR Techies",0],
+["HWGDG-121","Rohith Venkatagiri","SPR Techies",0],
+["HWGDG-122","Nishanth A","DevX",1],
+["HWGDG-123","Mithun S","DevX",0],
+["HWGDG-124","Kishore D","DevX",0],
+["HWGDG-125","Dharshan Balaji S","DevX",0],
+["HWGDG-126","Gomathi","Stranger AI",1],
+["HWGDG-127","Janci","Stranger AI",0],
+["HWGDG-128","R Udhayanidhi","Stranger AI",0],
+["HWGDG-129","Surveshwar T","Vorteqon",1],
+["HWGDG-130","Sivabalan S","Vorteqon",0],
+["HWGDG-131","Vishal B","IT Warriors",1],
+["HWGDG-132","Obulihariharan N","IT Warriors",0],
+["HWGDG-133","Kalaiarasan S","IT Warriors",0],
+["HWGDG-134","Anbuarasan L","IT Warriors",0],
+["HWGDG-135","Riduvarshini Mahesh Kumar","GaBN",1],
+["HWGDG-136","Rohith Ram","GaBN",0],
+["HWGDG-137","Ashmit Saxena","GaBN",0],
+["HWGDG-138","Josh Thomas","GaBN",0],
+["HWGDG-139","Shaarugesh","Hyena Coders",1],
+["HWGDG-140","Koushik","Hyena Coders",0],
+["HWGDG-141","Syed Imthiaz","Hyena Coders",0],
+["HWGDG-142","Joshua Anthony","Hyena Coders",0],
+["HWGDG-143","Roshni Kumari","Hyena Coders",0],
+["HWGDG-144","Suryaa M","QuantriX",1],
+["HWGDG-145","Shabari E S","QuantriX",0],
+["HWGDG-146","Dharunkumar V","QuantriX",0],
+["HWGDG-147","Santhoshini V J","QuantriX",0],
+["HWGDG-148","Sandhiya B","Pixel Pirates",1],
+["HWGDG-149","Selva Suganthi V","Pixel Pirates",0],
+["HWGDG-150","Senthil Kumar M","Pixel Pirates",0],
+["HWGDG-151","Sabarish Kumar S","Pixel Pirates",0],
+["HWGDG-152","Soundararajan RT","DEV CORE",1],
+["HWGDG-153","Sanjeev M","DEV CORE",0],
+["HWGDG-154","Sumaiya Thaslim","DEV CORE",0],
+["HWGDG-155","Revathy S","DEV CORE",0],
+["HWGDG-156","Ponmadhan D","Gryffindor",1],
+["HWGDG-157","Parthiban","Gryffindor",0],
+["HWGDG-158","Prem","Gryffindor",0],
+["HWGDG-159","Vijai","Gryffindor",0],
+["HWGDG-160","Arun S","Pascode Horizon Hunters",1],
+["HWGDG-161","Pragadeeswaran K","Pascode Horizon Hunters",0],
+["HWGDG-162","Harish Ragavendra B","Pascode Horizon Hunters",0],
+["HWGDG-163","Priyadharshan M","Pascode Horizon Hunters",0],
+["HWGDG-164","Kevin P","DevOps Titans",1],
+["HWGDG-165","Sachidanand S","DevOps Titans",0],
+["HWGDG-166","Taufiq Ahmed N","DevOps Titans",0],
+["HWGDG-167","Sheik Faridul M","DevOps Titans",0],
+["HWGDG-168","Anubhab Mishra","Evalytix",1],
+["HWGDG-169","Shatarupa Panda","Evalytix",0],
+["HWGDG-170","Ruturaj Mallick","Evalytix",0],
+["HWGDG-171","Muskan Saini","Evalytix",0],
+["HWGDG-172","Shaik Mohammed Umar","Blazers",1],
+["HWGDG-173","Poojala Mythriya","Blazers",0],
+["HWGDG-174","Ricky","NuetreX.io",1],
+["HWGDG-175","Suriyan TR","NuetreX.io",0],
+["HWGDG-176","Dharmeswaran","NuetreX.io",0],
+["HWGDG-177","Prabhavathi","NuetreX.io",0],
+["HWGDG-178","Vishva A","TEAM KLU",1],
+["HWGDG-179","Maha Lakshmi J","TEAM KLU",0],
+["HWGDG-180","Prem Surya P","TEAM KLU",0],
+["HWGDG-181","Ruba Dharshan P","TEAM KLU",0],
+["HWGDG-182","Surya T","TEAM KLU",0],
+["HWGDG-183","Madhan Kumar S","MetaMorph",1],
+["HWGDG-184","Khurram Rashid","SeemaRekha",1],
+["HWGDG-185","Kinza Zahra","SeemaRekha",0],
+["HWGDG-186","Sahul Hameed Dhameem M","PIXELATE",1],
+["HWGDG-187","Mathan Kumar N","PIXELATE",0],
+["HWGDG-188","Balaji S","PIXELATE",0],
+["HWGDG-189","Bharath K","Curious Coders",1],
+["HWGDG-190","Boomika L","Curious Coders",0],
+["HWGDG-191","Dinesh Pandi T","Curious Coders",0],
+["HWGDG-192","Bhavithra M","Curious Coders",0],
+["HWGDG-193","Bharathiraja M","Curious Coders",0],
+["HWGDG-194","Yaswanth V","Phonix Squad",1],
+["HWGDG-195","Srinath D","Phonix Squad",0],
+["HWGDG-196","Surendar Prakash S","Phonix Squad",0],
+["HWGDG-197","Vishal V","Phonix Squad",0],
+["HWGDG-198","Deepan G","Phonix Squad",0],
+["HWGDG-199","Somasundaran A S","CompileX",1],
+["HWGDG-200","Mohanavel V","CompileX",0],
+["HWGDG-201","Pranesh P","CompileX",0],
+["HWGDG-202","NandhaKishore J","CompileX",0],
+["HWGDG-203","Dharshini K","TECH CREW",1],
+["HWGDG-204","Dharaniya M","TECH CREW",0],
+["HWGDG-205","Agalya S","TECH CREW",0],
+["HWGDG-206","Gobika S","TECH CREW",0],
+["HWGDG-207","Aeesha Shamra N","Codex",1],
+["HWGDG-208","Shabana B","Codex",0],
+["HWGDG-209","Madhumitha R","Codex",0],
+["HWGDG-210","Bhuvaneshwari S","Tech Titans",1],
+["HWGDG-211","Sowmya C","Vision Weavers",1],
+["HWGDG-212","Shubaharini","Vision Weavers",0],
+["HWGDG-213","Sanghamithra P","Vision Weavers",0],
+["HWGDG-214","Sakthi Lakshmi L V","Vision Weavers",0],
+["HWGDG-215","Akash Santhnu Sundar","Pro-crastinators",1],
+["HWGDG-216","Balavanitha R","Pro-crastinators",0],
+["HWGDG-217","Kovardhini C","Pro-crastinators",0],
+["HWGDG-218","Nehaa Vairavel","Bug Squashers",1],
+["HWGDG-219","Deepika M","Bug Squashers",0],
+["HWGDG-220","Harini V","Bug Squashers",0],
+["HWGDG-221","Muralidharan E","Bug Squashers",0],
+["HWGDG-222","Kaviya K","Bug Squashers",0]
+];
 
-    <div id="qrcode"></div>
+const participants = P.map(r => ({ id:r[0], name:r[1], team:r[2], isLead:!!r[3] }));
 
-    <div class="instructions">
-      <strong>📝 Instructions:</strong><br>
-      1. Enter participant ID and name<br>
-      2. Click "Generate QR Code"<br>
-      3. Download or print the QR code<br>
-      4. Scan at check-in stations during hackathon
-    </div>
+// populate team filter
+const teams = [...new Set(participants.map(p => p.team))].sort();
+const sel = document.getElementById('teamFilter');
+teams.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
 
-    <div class="bulk-section">
-      <h3 style="color: #202124; margin-bottom: 15px;">📋 Bulk Generate</h3>
-      <div class="form-group">
-        <label for="bulkData">Enter participants (one per line: ID,Name):</label>
-        <textarea id="bulkData" placeholder="101,John Doe&#10;102,Jane Smith&#10;103,Bob Johnson"></textarea>
-      </div>
-      <button onclick="generateBulkQRCodes()">📦 Generate All QR Codes</button>
-      <div id="bulkQRCodes"></div>
-    </div>
-  </div>
+function render() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const team = document.getElementById('teamFilter').value;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
 
-  <script>
-    function generateQRCode() {
-      const id = document.getElementById('participantId').value.trim();
-      const name = document.getElementById('participantName').value.trim();
-      
-      if (!id || !name) {
-        alert('Please fill in both Participant ID and Name!');
-        return;
-      }
+  let filtered = participants;
+  if (team) filtered = filtered.filter(p => p.team === team);
+  if (q) filtered = filtered.filter(p =>
+    p.name.toLowerCase().includes(q) || p.team.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)
+  );
 
-      const data = `${id}|${name}`;
-      const qrcodeDiv = document.getElementById('qrcode');
-      qrcodeDiv.innerHTML = '';
+  document.getElementById('stat').textContent = `${filtered.length} / ${participants.length} participants`;
 
-      QRCode.toCanvas(data, { 
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
-      }, function (error, canvas) {
-        if (error) {
-          console.error(error);
-          alert('Error generating QR code!');
-          return;
-        }
-        
-        canvas.style.display = 'block';
-        canvas.style.margin = '0 auto';
-        qrcodeDiv.appendChild(canvas);
+  filtered.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'qr-card';
 
-        // Add participant info
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'participant-info';
-        infoDiv.innerHTML = `
-          <h3>${name}</h3>
-          <p>ID: ${id}</p>
-        `;
-        qrcodeDiv.appendChild(infoDiv);
+    const qrDiv = document.createElement('div');
+    qrDiv.className = 'qr-img';
+    card.appendChild(qrDiv);
 
-        // Add download button
-        const downloadBtn = document.createElement('button');
-        downloadBtn.className = 'download-btn';
-        downloadBtn.textContent = '💾 Download QR Code';
-        downloadBtn.onclick = function() {
-          const link = document.createElement('a');
-          link.download = `qr-${id}-${name.replace(/\s+/g, '-')}.png`;
-          link.href = canvas.toDataURL();
-          link.click();
-        };
-        qrcodeDiv.appendChild(downloadBtn);
-      });
+    const nameEl = document.createElement('div');
+    nameEl.className = 'qr-name';
+    nameEl.textContent = p.name;
+    card.appendChild(nameEl);
+
+    const teamEl = document.createElement('div');
+    teamEl.className = 'qr-team';
+    teamEl.textContent = p.team;
+    card.appendChild(teamEl);
+
+    const idEl = document.createElement('div');
+    idEl.className = 'qr-id';
+    idEl.textContent = p.id;
+    card.appendChild(idEl);
+
+    if (p.isLead) {
+      const badge = document.createElement('span');
+      badge.className = 'qr-lead';
+      badge.textContent = 'Team Lead';
+      card.appendChild(badge);
     }
 
-    function generateBulkQRCodes() {
-      const bulkData = document.getElementById('bulkData').value.trim();
-      
-      if (!bulkData) {
-        alert('Please enter participant data!');
-        return;
-      }
+    grid.appendChild(card);
 
-      const lines = bulkData.split('\n').filter(line => line.trim());
-      const bulkDiv = document.getElementById('bulkQRCodes');
-      bulkDiv.innerHTML = '<h3 style="margin-top: 20px; color: #202124;">Generated QR Codes:</h3>';
-
-      lines.forEach((line, index) => {
-        const [id, name] = line.split(',').map(s => s.trim());
-        
-        if (!id || !name) {
-          return;
-        }
-
-        const data = `${id}|${name}`;
-        const container = document.createElement('div');
-        container.style.marginTop = '20px';
-        container.style.padding = '20px';
-        container.style.background = '#f8f9fa';
-        container.style.borderRadius = '15px';
-        container.style.pageBreakAfter = 'always';
-
-        const title = document.createElement('h4');
-        title.textContent = `${name} (ID: ${id})`;
-        title.style.color = '#202124';
-        title.style.marginBottom = '10px';
-        title.style.textAlign = 'center';
-        container.appendChild(title);
-
-        const canvasContainer = document.createElement('div');
-        canvasContainer.style.textAlign = 'center';
-        container.appendChild(canvasContainer);
-
-        QRCode.toCanvas(data, { 
-          width: 250,
-          margin: 2
-        }, function (error, canvas) {
-          if (!error) {
-            canvas.style.borderRadius = '10px';
-            canvasContainer.appendChild(canvas);
-          }
-        });
-
-        bulkDiv.appendChild(container);
-      });
-
-      // Add print button
-      const printBtn = document.createElement('button');
-      printBtn.textContent = '🖨️ Print All QR Codes';
-      printBtn.style.marginTop = '20px';
-      printBtn.onclick = function() {
-        window.print();
-      };
-      bulkDiv.appendChild(printBtn);
-    }
-
-    // Allow Enter key to generate QR code
-    document.getElementById('participantName').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        generateQRCode();
-      }
+    new QRCode(qrDiv, {
+      text: p.id,
+      width: 150,
+      height: 150,
+      colorDark: '#1a1a2e',
+      colorLight: '#faf9f6',
+      correctLevel: QRCode.CorrectLevel.M
     });
-  </script>
+  });
+}
+
+// initial render
+render();
+</script>
 </body>
 </html>

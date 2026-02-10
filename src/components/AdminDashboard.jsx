@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, orderBy, getDocs, where, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { TOTAL_PARTICIPANTS, TOTAL_TEAMS } from '../data/participants';
 
 function AdminDashboard({ checkInTypes }) {
   const [checkins, setCheckins] = useState([]);
   const [stats, setStats] = useState({
     total: 0,
     today: 0,
+    uniqueParticipants: 0,
     firstCheckin: 0,
     dinner: 0
   });
@@ -39,10 +41,12 @@ function AdminDashboard({ checkInTypes }) {
 
   const calculateStats = (data) => {
     const today = new Date().toLocaleDateString();
+    const uniqueIds = new Set(data.map(c => c.participantId));
     
     const stats = {
       total: data.length,
       today: data.filter(c => c.date === today).length,
+      uniqueParticipants: uniqueIds.size,
       firstCheckin: data.filter(c => c.checkInType === 'first-checkin').length,
       dinner: data.filter(c => c.checkInType?.includes('dinner')).length
     };
@@ -55,10 +59,11 @@ function AdminDashboard({ checkInTypes }) {
     : checkins.filter(c => c.checkInType === filterType);
 
   const exportToCSV = () => {
-    const headers = ['Participant ID', 'Name', 'Check-in Type', 'Date', 'Time'];
+    const headers = ['Participant ID', 'Name', 'Team', 'Check-in Type', 'Date', 'Time'];
     const rows = checkins.map(c => [
       c.participantId,
       c.participantName,
+      c.team || '',
       c.checkInType,
       c.date,
       c.time
@@ -93,20 +98,20 @@ function AdminDashboard({ checkInTypes }) {
 
       <div className="stats-grid">
         <div className="stat-card">
+          <h3>{stats.uniqueParticipants}/{TOTAL_PARTICIPANTS}</h3>
+          <p>Participants</p>
+        </div>
+        <div className="stat-card">
           <h3>{stats.total}</h3>
           <p>Total Check-ins</p>
         </div>
         <div className="stat-card">
-          <h3>{stats.today}</h3>
-          <p>Today</p>
-        </div>
-        <div className="stat-card">
           <h3>{stats.firstCheckin}</h3>
-          <p>First Check-ins</p>
+          <p>Arrivals</p>
         </div>
         <div className="stat-card">
           <h3>{stats.dinner}</h3>
-          <p>Dinner</p>
+          <p>Dinners</p>
         </div>
       </div>
 
@@ -136,7 +141,7 @@ function AdminDashboard({ checkInTypes }) {
                   <div className="checkin-item-name">
                     {checkin.participantName} <span className="checkin-item-id">#{checkin.participantId}</span>
                   </div>
-                  <div className="checkin-item-type">{checkin.checkInType}</div>
+                  <div className="checkin-item-type">{checkin.team ? `${checkin.team} · ` : ''}{checkin.checkInType}</div>
                 </div>
                 <div className="checkin-item-time">
                   <div>{checkin.date}</div>
