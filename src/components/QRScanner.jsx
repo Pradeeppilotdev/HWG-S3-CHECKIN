@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { findParticipantById } from '../data/participants';
+import CheckInTypeDropdown from './CheckInTypeDropdown';
 
 function QRScanner({ onCheckIn, checkInTypes }) {
   const [scanner, setScanner] = useState(null);
@@ -71,14 +72,11 @@ function QRScanner({ onCheckIn, checkInTypes }) {
     <div className="scanner-container">
       <div className="input-group">
         <label>Check-in type</label>
-        <select
+        <CheckInTypeDropdown
+          checkInTypes={checkInTypes}
           value={selectedCheckInType}
-          onChange={(e) => setSelectedCheckInType(e.target.value)}
-        >
-          {checkInTypes.map(type => (
-            <option key={type.value} value={type.value}>{type.label}</option>
-          ))}
-        </select>
+          onChange={setSelectedCheckInType}
+        />
       </div>
 
       <div id="qr-reader"></div>

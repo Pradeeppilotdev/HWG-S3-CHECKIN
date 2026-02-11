@@ -6,7 +6,7 @@ import Login from './components/Login';
 import QRScanner from './components/QRScanner';
 import ManualEntry from './components/ManualEntry';
 import AdminDashboard from './components/AdminDashboard';
-import { findParticipantById } from './data/participants';
+import { findParticipantById, MEAL_TYPES } from './data/participants';
 import './App.css';
 
 /* Inline SVG doodle for the header */
@@ -93,6 +93,18 @@ function App() {
 
   const handleCheckIn = async (participantId, participantName, checkInType) => {
     try {
+      // ── Snacks-only enforcement ──────────────────────
+      const participant = findParticipantById(participantId);
+      if (participant?.snacksOnly && MEAL_TYPES.includes(checkInType)) {
+        const label = checkInTypes.find(t => t.value === checkInType)?.label || checkInType;
+        setStatusMessage({
+          type: 'error',
+          message: `⚠ ${participantName} is registered for snacks only — cannot check in for ${label}`
+        });
+        setTimeout(() => setStatusMessage(null), 4000);
+        return;
+      }
+
       // ── Duplicate check ──────────────────────────────
       const dupQuery = query(
         collection(db, 'checkins'),
@@ -111,8 +123,7 @@ function App() {
         return; // stop — no duplicate write
       }
 
-      // ── Look up team from static data ────────────────
-      const participant = findParticipantById(participantId);
+      // ── Write check-in (team from lookup above) ────
 
       const checkInData = {
         participantId,

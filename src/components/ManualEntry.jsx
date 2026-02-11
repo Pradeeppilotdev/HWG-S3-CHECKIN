@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { findParticipantsByName, findParticipantById } from '../data/participants';
+import CheckInTypeDropdown from './CheckInTypeDropdown';
 
 function ManualEntry({ onCheckIn, checkInTypes }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,14 +83,11 @@ function ManualEntry({ onCheckIn, checkInTypes }) {
 
       <div className="input-group">
         <label>Check-in type</label>
-        <select
+        <CheckInTypeDropdown
+          checkInTypes={checkInTypes}
           value={selectedCheckInType}
-          onChange={(e) => setSelectedCheckInType(e.target.value)}
-        >
-          {checkInTypes.map(type => (
-            <option key={type.value} value={type.value}>{type.label}</option>
-          ))}
-        </select>
+          onChange={setSelectedCheckInType}
+        />
       </div>
 
       <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
