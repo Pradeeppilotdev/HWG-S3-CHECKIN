@@ -812,6 +812,106 @@ body::after {
   box-shadow: 2px 2px 0 var(--shadow);
 }
 
+/* ── Confirmation Overlay ──────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(26, 26, 46, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.confirm-card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  width: 92%;
+  max-width: 360px;
+  box-shadow: 4px 4px 0 var(--shadow);
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.confirm-header {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  padding: 16px 20px 8px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.confirm-body {
+  padding: 18px 20px 12px;
+  text-align: center;
+}
+
+.confirm-name {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.confirm-detail {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.05rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.confirm-badges {
+  margin: 10px 0 6px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.confirm-prefs {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin: 10px 0 4px;
+}
+
+.confirm-checkin-type {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.05rem;
+  color: var(--muted);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  padding: 14px 20px 18px;
+  border-top: 1px dashed var(--line);
+}
+
+.confirm-actions .btn {
+  flex: 1;
+  font-size: 1.05rem;
+  padding: 10px 0;
+}
+
 /* ── Responsive ────────────────────────────────── */
 @media (max-width: 600px) {
   body::after { left: 40px; }

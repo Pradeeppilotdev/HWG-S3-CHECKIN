@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { findParticipantById } from '../data/participants';
 import CheckInTypeDropdown from './CheckInTypeDropdown';
@@ -7,8 +7,9 @@ function QRScanner({ onCheckIn, checkInTypes }) {
   const [scanner, setScanner] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [selectedCheckInType, setSelectedCheckInType] = useState('first-checkin');
-  const [lastScanned, setLastScanned] = useState(null);
-  const [scannedParticipant, setScannedParticipant] = useState(null);
+  const [pendingParticipant, setPendingParticipant] = useState(null);
+  const [processing, setProcessing] = useState(false);
+  const scanLockRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -27,10 +28,9 @@ function QRScanner({ onCheckIn, checkInTypes }) {
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
-          if (decodedText !== lastScanned) {
-            setLastScanned(decodedText);
+          if (!scanLockRef.current) {
+            scanLockRef.current = true;
             handleQRCodeScanned(decodedText);
-            setTimeout(() => setLastScanned(null), 3000);
           }
         },
         () => {}
@@ -48,6 +48,8 @@ function QRScanner({ onCheckIn, checkInTypes }) {
         await scanner.stop();
         setIsScanning(false);
         setScanner(null);
+        scanLockRef.current = false;
+        setPendingParticipant(null);
       } catch (err) {
         console.error('Error stopping scanner:', err);
       }
@@ -59,14 +61,33 @@ function QRScanner({ onCheckIn, checkInTypes }) {
     const participant = findParticipantById(id);
 
     if (!participant) {
-      setScannedParticipant(null);
+      setPendingParticipant(null);
       alert(`Unknown ID: ${id}\nNot found in participant list.`);
+      scanLockRef.current = false;
       return;
     }
 
-    setScannedParticipant(participant);
-    onCheckIn(participant.id, participant.name, selectedCheckInType);
+    // Show confirmation popup instead of immediately checking in
+    setPendingParticipant(participant);
   };
+
+  const handleConfirm = async () => {
+    if (!pendingParticipant || processing) return;
+    setProcessing(true);
+    await onCheckIn(pendingParticipant.id, pendingParticipant.name, selectedCheckInType);
+    setProcessing(false);
+    setPendingParticipant(null);
+    // Unlock scanning after a brief delay to prevent instant re-scan
+    setTimeout(() => { scanLockRef.current = false; }, 1500);
+  };
+
+  const handleDecline = () => {
+    setPendingParticipant(null);
+    // Unlock scanning after a brief delay
+    setTimeout(() => { scanLockRef.current = false; }, 500);
+  };
+
+  const checkInLabel = checkInTypes.find(t => t.value === selectedCheckInType)?.label || selectedCheckInType;
 
   return (
     <div className="scanner-container">
@@ -93,18 +114,44 @@ function QRScanner({ onCheckIn, checkInTypes }) {
         )}
       </div>
 
-      {scannedParticipant && (
-        <div className="scanned-info">
-          <strong>{scannedParticipant.name}</strong>
-          <span className="scanned-team">{scannedParticipant.team}</span>
-          <span className="scanned-id">{scannedParticipant.id}</span>
-          {scannedParticipant.isLead && <span className="lead-badge">Team Lead</span>}
+      {/* ── Confirmation Popup ── */}
+      {pendingParticipant && (
+        <div className="confirm-overlay" onClick={handleDecline}>
+          <div className="confirm-card" onClick={e => e.stopPropagation()}>
+            <div className="confirm-header">Confirm Check-in</div>
+            <div className="confirm-body">
+              <div className="confirm-name">{pendingParticipant.name}</div>
+              <div className="confirm-detail">{pendingParticipant.team}</div>
+              <div className="confirm-detail">{pendingParticipant.id}</div>
+              <div className="confirm-badges">
+                {pendingParticipant.isLead && <span className="lead-badge">Team Lead</span>}
+                {pendingParticipant.snacksOnly && <span className="lead-badge" style={{ background: '#e67e22' }}>Snacks Only</span>}
+              </div>
+              <div className="confirm-prefs">
+                <span>{pendingParticipant.food === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'}</span>
+                <span style={{ marginLeft: 12 }}>
+                  {pendingParticipant.bev === 'coffee' ? '☕ Coffee' : pendingParticipant.bev === 'tea' ? '🍵 Tea' : '— None'}
+                </span>
+              </div>
+              <div className="confirm-checkin-type">→ {checkInLabel}</div>
+            </div>
+            <div className="confirm-actions">
+              <button className="btn btn-secondary" onClick={handleDecline} disabled={processing}>
+                Decline
+              </button>
+              <button className="btn btn-primary" onClick={handleConfirm} disabled={processing}>
+                {processing ? 'Processing…' : 'Confirm ✓'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="scanner-hint">
-        Point camera at participant QR badge
-      </div>
+      {!pendingParticipant && (
+        <div className="scanner-hint">
+          Point camera at participant QR badge
+        </div>
+      )}
     </div>
   );
 }
