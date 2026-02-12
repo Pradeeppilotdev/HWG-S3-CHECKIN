@@ -7,6 +7,5 @@ dist
 .vscode
 .idea
 
-# Sensitive — contains participant IDs & QR codes
+# Sensitive — contains participant QR codes
 qr-generator.html
-src/data/participants.js
