@@ -62,9 +62,8 @@ const participants = [
   { id: 'HWGDG-032', name: 'Brahmos S', team: 'SPARKS', food: 'non-veg', bev: 'tea' },
   { id: 'HWGDG-033', name: 'Louvin Raj V', team: 'SPARKS', food: 'non-veg', bev: 'tea' },
 
-  // ── 10. The Mavericks ──────────────────────────
+  // ── 10. The Mavericks ────────────────────────── (Akash Kashyap withdrawn – high fever)
   { id: 'HWGDG-034', name: 'Rajkumar N', team: 'The Mavericks', isLead: true, food: 'non-veg', bev: 'coffee' },
-  { id: 'HWGDG-035', name: 'Akash Kashyap', team: 'The Mavericks', food: 'veg', bev: 'tea' },
   { id: 'HWGDG-036', name: 'Harish S', team: 'The Mavericks', food: 'non-veg', bev: 'coffee' },
 
   // ── 11. Ethical Crew ───────────────────────────
