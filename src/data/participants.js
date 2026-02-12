@@ -356,6 +356,12 @@ const participants = [
 
   // ── 60. Cyberkiddos [NEW] ─────────────────────
   { id: 'HWGDG-220', name: 'Rudhrabalan V', team: 'Cyberkiddos', isLead: true, food: 'non-veg', bev: 'coffee' },
+
+  // ── 61. gdgksrce [TEST] ───────────────────────
+  { id: 'HWGDG-221', name: 'Pradeep Kumar', team: 'gdgksrce', isLead: true, food: 'veg', bev: 'coffee' },
+  { id: 'HWGDG-222', name: 'Arun Sharma', team: 'gdgksrce', food: 'non-veg', bev: 'tea' },
+  { id: 'HWGDG-223', name: 'Divya Lakshmi', team: 'gdgksrce', food: 'veg', bev: 'tea' },
+  { id: 'HWGDG-224', name: 'Karthik Rajan', team: 'gdgksrce', food: 'non-veg', bev: 'coffee' },
 ];
 
 // Food/meal check-in types (snacksOnly participants are blocked from these)
